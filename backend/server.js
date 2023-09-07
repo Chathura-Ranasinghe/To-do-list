@@ -1,34 +1,48 @@
 require('dotenv').config()
 
-//require express package 
+// require express package 
 const express = require('express')
 
-//start up the express app
+// require workouts.js 
+const workoutRoutes = require('./routes/workouts')
+
+// require mongoose
+const mongoose = require('mongoose')
+
+// start up the express app
 // required express isnow store in const app
 const app = express()
 
 
-//middleware
+// middleware
+app.use(express.json())
+
 app.use((req, res, next) => {
     console.log(req.path ,req.method)
     next()
 })
 
-//responsible of get request 
-//forward slash mean when go to local host port 4000
-//routs
-app.get('/', (req, res) =>{
-    res.json({mssg: 'welcome to the app'})
-})
+// responsible of get request 
+// forward slash mean when go to local host port 4000
 
-//req   -- request object (which has information about request)
+// routs
+app.use('/api/workouts',workoutRoutes)
+
+// connect to db
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        // listen for requests
+        app.listen(process.env.PORT, () => {
+            console.log('connected to the DB & listning on port' ,process.env.PORT)
+        })
+    })
+    .catch((error) => {
+        console.log(error)
+    })
+
+// req   -- request object (which has information about request)
 // res  -- respons object (which we use to send a response back to clients)
 
-//listen for requests
-app.listen(process.env.PORT, () => {
-    console.log('listning on port' ,process.env.PORT)
-})
-
-//nodemon is a tool that helps develop Node. js based applications by automatically restarting the node application when file changes in the directory are detected. 
+// nodemon is a tool that helps develop Node. js based applications by automatically restarting the node application when file changes in the directory are detected. 
 
 

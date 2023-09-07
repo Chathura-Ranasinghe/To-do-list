@@ -35,7 +35,7 @@ header a {
 /* homepage */
 .home {
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 3fr 2fr;
   gap: 100px;
 }
 .workout-details {
@@ -99,4 +99,12 @@ div.error {
 }
 input.error {
   border: 1px solid var(--error);
+}
+
+@media screen and (max-width: 768px) {
+  .home {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 50px;
+  }
 }

@@ -1,92 +1,98 @@
-// require Workout
 const Workout = require('../models/workoutModel')
-
-// require mongoose
 const mongoose = require('mongoose')
 
-// ------------get all workout----------
+// get all workouts
+const getWorkouts = async (req, res) => {
+  const workouts = await Workout.find({}).sort({createdAt: -1})
 
-const getWorkouts = async(req, res) => {
-    // add doc to db
-    const workout = await Workout.find({}).sort({createdAt: -1})
-    res.status(200).json(workout)
+  res.status(200).json(workouts)
 }
 
-// ------------get a single workout--------
-const getWorkout = async(req, res) => {
+// get a single workout
+const getWorkout = async (req, res) => {
+  const { id } = req.params
 
-    const {id} = req.params
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({error: 'No such workout'})
+  }
 
-    if(!mongoose.Types.ObjectId.isValid(id)){
-        return res.status(404).json({error: 'Wrong ID'})
-    }
+  const workout = await Workout.findById(id)
 
-    // add doc to db
-    const workout = await Workout.findById(id)
+  if (!workout) {
+    return res.status(404).json({error: 'No such workout'})
+  }
 
-    if(!workout){
-        return res.status(404).json({error: 'N0 such workout'})
-    }
-    res.status(200).json(workout)
+  res.status(200).json(workout)
 }
 
-// -------------create new workout-----------
+// create a new workout
+const createWorkout = async (req, res) => {
+  const {title, load, reps} = req.body
 
-const createWorkout = async(req, res) => {
-    const {title, load, reps} = req.body
+  let emptyFields = []
 
-    // add doc to db
-    try {
-        const workout = await Workout.create({title, load, reps})
-        res.status(200).json(workout)
-    }catch (error){
-        res.status(400).json({error: error.message})
-    }
+  if (!title) {
+    emptyFields.push('title')
+  }
+  if (!load) {
+    emptyFields.push('load')
+  }
+  if (!reps) {
+    emptyFields.push('reps')
+  }
+  if (emptyFields.length > 0) {
+    return res.status(400).json({ error: 'Please fill in all fields', emptyFields })
+  }
+
+  // add to the database
+  try {
+    const workout = await Workout.create({ title, load, reps })
+    res.status(200).json(workout)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
 }
 
-// ------------- delete a workout-------------
+// delete a workout
+const deleteWorkout = async (req, res) => {
+  const { id } = req.params
 
-const deleteWorkout = async(req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({error: 'No such workout'})
+  }
 
-    const {id} = req.params
+  const workout = await Workout.findOneAndDelete({_id: id})
 
-    if(!mongoose.Types.ObjectId.isValid(id)){
-        return res.status(404).json({error: 'Wrong ID'})
-    }
+  if(!workout) {
+    return res.status(400).json({error: 'No such workout'})
+  }
 
-    // add doc to db
-    const workout = await Workout.findOneAndDelete({_id: id})
-
-    if(!workout){
-        return res.status(400).json({error: 'No such workout'})
-    }
-    res.status(200).json(workout)
+  res.status(200).json(workout)
 }
 
-// ---------------update a workout------------
-const updateWorkout = async(req, res) => {
+// update a workout
+const updateWorkout = async (req, res) => {
+  const { id } = req.params
 
-    const {id} = req.params
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({error: 'No such workout'})
+  }
 
-    if(!mongoose.Types.ObjectId.isValid(id)){
-        return res.status(404).json({error: 'Wrong ID'})
-    }
+  const workout = await Workout.findOneAndUpdate({_id: id}, {
+    ...req.body
+  })
 
-    // add doc to db
-    const workout = await Workout.findOneAndUpdate({_id: id}, {
-        ...req.body
-    })
+  if (!workout) {
+    return res.status(400).json({error: 'No such workout'})
+  }
 
-    if(!workout){
-        return res.status(400).json({error: 'No such workout'})
-    }
-    res.status(200).json(workout)
+  res.status(200).json(workout)
 }
 
 module.exports = {
-    getWorkouts,
-    getWorkout,
-    createWorkout,
-    deleteWorkout,
-    updateWorkout
+  getWorkouts,
+  getWorkout,
+  createWorkout,
+  deleteWorkout,
+  updateWorkout
 }
